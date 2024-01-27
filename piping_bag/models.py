@@ -1,5 +1,5 @@
 from typing import Union, Type, get_origin, Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, validate_call
 import re
 from .interfaces import Database
 
@@ -87,7 +87,15 @@ class Parameter:
             return False
 
 
-Data = list[Any]
+Data = list[int]
+
+
+class ArrayParameter(Parameter):
+    value: Data
+
+    @validate_call
+    def __init__(self, name: str, value: Data):
+        super().__init__(name, value)
 
 
 class Query:
@@ -148,7 +156,7 @@ class Query:
             self.options.append(In)
             for in_sentence in in_sentences:
                 param = in_sentence.split('$')[1].strip()
-                in_param = Parameter(param, self.values[param])
+                in_param = ArrayParameter(param, self.values[param])
                 assert in_param in self.all_params
                 self.in_params.append(in_param)
 
