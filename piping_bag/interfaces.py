@@ -57,8 +57,8 @@ class PostgresDatabase(Database):
 
 
 class SQLiteDatabase(Database):
-    def __init__(self):
-        self.dsn = "db/test.db"
+    def __init__(self, path: str):
+        self.dsn = path
 
     def get_connection(self):
         return aiosqlite.connect(self.dsn)
