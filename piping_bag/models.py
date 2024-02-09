@@ -87,14 +87,15 @@ class Parameter:
             return False
 
 
-Data = list[int]
+Array = list[int]
+Data = list[tuple]
 
 
 class ArrayParameter(Parameter):
-    value: Data
+    value: Array
 
     @validate_call
-    def __init__(self, name: str, value: Data):
+    def __init__(self, name: str, value: Array):
         super().__init__(name, value)
 
 
