@@ -193,7 +193,7 @@ class Query:
             if rows is None:
                 result = None
             elif not self.return_type.is_adaptive:
-                result = rows
+                result = [row[0] for row in rows]
             else:
                 result = [self.return_type.model(**dict(row)) for row in rows]
         elif not self.return_type.is_list and (self.operation is Select or Returning in self.options):
