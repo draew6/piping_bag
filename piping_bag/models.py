@@ -178,7 +178,7 @@ class Query:
         self.params = [param for param in self.all_params if param not in self.in_params]
 
     def standardize(self):
-        if self.operation in [Select, Delete]:
+        if self.operation in [Select, Update, Delete]:
             for in_param in self.in_params:
                 self.modified = self.modified.replace(in_param.name, f'({",".join([str(value) for value in in_param.value])})')
 
@@ -204,7 +204,7 @@ class Query:
                 result = rows[0]
             else:
                 result = self.return_type.model(**dict(rows))
-        elif self.operation not in [Select, Delete] and In in self.options:
+        elif self.operation not in [Select, Update, Delete] and In in self.options:
             result = await db.execute_many(self.modified, *[p.value for p in self.params])
             result = None
         else:
