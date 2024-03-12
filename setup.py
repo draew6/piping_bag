@@ -7,7 +7,6 @@ setup(
     install_requires=[
         "pydantic==2.5.3",
         "asyncpg == 0.29.0",
-        "aiosqlite==0.19.0",
-        "pysqlite3-binary==0.5.2.post2"
+        "aiosqlite==0.19.0"
     ],
 )
