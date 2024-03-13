@@ -1,13 +1,18 @@
 from setuptools import setup, find_packages
+import sys
+
+install_requires = [
+    "pydantic==2.5.3",
+    "asyncpg == 0.29.0",
+    "aiosqlite==0.19.0"
+]
+
+if not sys.platform.startswith('win'):
+    install_requires.append("pysqlite3-binary==0.5.2.post2")
 
 setup(
     name='piping_bag',
     version='0.1.5',
     packages=find_packages(),
-    install_requires=[
-        "pydantic==2.5.3",
-        "asyncpg == 0.29.0",
-        "aiosqlite==0.19.0",
-        "pysqlite3-binary==0.5.2.post2"
-    ],
+    install_requires=install_requires,
 )
