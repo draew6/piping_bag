@@ -1,6 +1,17 @@
-__import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# Check if 'sqlite3' is already available in sys.modules
+if 'sqlite3' not in sys.modules:
+    # Attempt to import pysqlite3 only if sqlite3 is not available
+    try:
+        import pysqlite3
+        # Replace 'sqlite3' in sys.modules with 'pysqlite3' if pysqlite3 was successfully imported
+        sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+    except ImportError:
+        # Handle the case where pysqlite3 is not available
+        print("pysqlite3 is not installed, and sqlite3 is not available.")
+
+
 import asyncpg
 import aiosqlite
 from abc import ABC, abstractmethod
