@@ -7,7 +7,7 @@ install_requires = [
     "aiosqlite==0.19.0"
 ]
 
-if not sys.platform.startswith('win'):
+if sys.platform.startswith('linux'):
     install_requires.append("pysqlite3-binary==0.5.2.post2")
 
 setup(
