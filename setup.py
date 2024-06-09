@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys
 
 install_requires = [
-    "pydantic==2.5.3",
+    "pydantic==2.7.3",
     "asyncpg == 0.29.0",
     "aiosqlite==0.19.0"
 ]
