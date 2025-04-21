@@ -1,4 +1,4 @@
-from typing import Union, Type, get_origin, Optional, Any
+from typing import Union, Type, get_origin, Any
 from pydantic import BaseModel, validate_call
 import re
 from .interfaces import Database
@@ -101,11 +101,11 @@ class ArrayParameter(Parameter):
 
 class Query:
     operation: Type[Operation]
-    options: list[Union[Type[In], Type[Returning]]]
+    options: list[Type[In] | Type[Returning]]
     return_type: ReturnType
     raw: str
     modified: str
-    schema: Optional[str]
+    schema: str | None
     all_params: list[Parameter] = []
     params: list[Parameter] = []
     in_params: list[Parameter] = []
