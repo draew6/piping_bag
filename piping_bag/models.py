@@ -4,32 +4,25 @@ import re
 from .interfaces import Database
 
 
-class Operation:
-    ...
+class Operation: ...
 
 
-class Select(Operation):
-    ...
+class Select(Operation): ...
 
 
-class Insert(Operation):
-    ...
+class Insert(Operation): ...
 
 
-class InsertOne(Insert):
-    ...
+class InsertOne(Insert): ...
 
 
-class InsertMany(Insert):
-    ...
+class InsertMany(Insert): ...
 
 
-class Update(Operation):
-    ...
+class Update(Operation): ...
 
 
-class Delete(Operation):
-    ...
+class Delete(Operation): ...
 
 
 class In:
@@ -57,7 +50,9 @@ class ReturnType:
             self.is_optional = True
         else:
             self.is_optional = False
-        self.is_adaptive = any(issubclass(model, c) for c in self.ADAPTIVE_CLASSES) if model else False
+        self.is_adaptive = (
+            any(issubclass(model, c) for c in self.ADAPTIVE_CLASSES) if model else False
+        )
         self.model = model
 
 
@@ -67,17 +62,17 @@ class Parameter:
     value: Any
 
     def __init__(self, name: str, value: Any):
-        if name.startswith('$'):
+        if name.startswith("$"):
             self.name = name
-            self.clean_name = name.strip('$')
+            self.clean_name = name.strip("$")
         else:
-            self.name = f'${name}'
+            self.name = f"${name}"
             self.clean_name = name
         self.value = value
 
     def __eq__(self, other):
         if isinstance(other, str):
-            if other.startswith('$'):
+            if other.startswith("$"):
                 return self.name == other
             else:
                 return self.clean_name == other
@@ -112,7 +107,9 @@ class Query:
     values: dict = {}
     data: list = []
 
-    def __init__(self, sql_query: str, type_hint: Type, values: dict, schema=None, data=None):
+    def __init__(
+        self, sql_query: str, type_hint: Type, values: dict, schema=None, data=None
+    ):
         self.raw = sql_query.strip()
         self.modified = self.raw
         self.values = values
@@ -131,15 +128,15 @@ class Query:
     def extract_operation(self):
         raw_lower = self.raw.lower()
         # Extracting the operation
-        if raw_lower.startswith('select'):
+        if raw_lower.startswith("select"):
             self.operation = Select
-        elif raw_lower.startswith('insert') and self.data:
+        elif raw_lower.startswith("insert") and self.data:
             self.operation = InsertMany
-        elif raw_lower.startswith('insert'):
+        elif raw_lower.startswith("insert"):
             self.operation = Insert
-        elif raw_lower.startswith('update'):
+        elif raw_lower.startswith("update"):
             self.operation = Update
-        elif raw_lower.startswith('delete'):
+        elif raw_lower.startswith("delete"):
             self.operation = Delete
         else:
             raise ValueError(f"Invalid SQL query: {self.raw}")
@@ -151,39 +148,50 @@ class Query:
         if "returning" in raw_lower:
             assert self.operation in Returning.usable_in
             self.options.append(Returning)
-        in_sentences = re.findall(r'\b\w+\s+in\s+\$\w+\b', raw_lower)
+        in_sentences = re.findall(r"\b\w+\s+in\s+\$\w+\b", raw_lower)
         if in_sentences:
             assert self.operation in In.usable_in
             self.options.append(In)
             for in_sentence in in_sentences:
-                param = in_sentence.split('$')[1].strip()
+                param = in_sentence.split("$")[1].strip()
                 in_param = ArrayParameter(param, self.values[param])
                 assert in_param in self.all_params
                 self.in_params.append(in_param)
 
     def set_schema(self):
         if self.schema is not None:
-            self.modified = (self.modified
-                             .replace('FROM ', f'FROM "{self.schema}".')
-                             .replace('JOIN ', f'JOIN "{self.schema}".')
-                             .replace('INSERT INTO ', f'INSERT INTO "{self.schema}".')
-                             )
+            self.modified = (
+                self.modified.replace("FROM ", f'FROM "{self.schema}".')
+                .replace("JOIN ", f'JOIN "{self.schema}".')
+                .replace("INSERT INTO ", f'INSERT INTO "{self.schema}".')
+            )
             if self.operation is Update:
-                self.modified = self.modified.replace('UPDATE ', f'UPDATE "{self.schema}".')
+                self.modified = self.modified.replace(
+                    "UPDATE ", f'UPDATE "{self.schema}".'
+                )
 
     def parse_all_params(self):
-        self.all_params = [Parameter(param, self.values[param.strip("$")]) for param in dict.fromkeys(re.findall(r'\$\w+', self.modified)) if param.strip("$") in self.values]
+        self.all_params = [
+            Parameter(param, self.values[param.strip("$")])
+            for param in dict.fromkeys(re.findall(r"\$\w+", self.modified))
+            if param.strip("$") in self.values
+        ]
 
     def parse_params(self):
-        self.params = [param for param in self.all_params if param not in self.in_params]
+        self.params = [
+            param for param in self.all_params if param not in self.in_params
+        ]
 
     def standardize(self):
         if self.operation in [Select, Update, Delete]:
             for in_param in self.in_params:
-                self.modified = self.modified.replace(in_param.name, f'({",".join([str(value) for value in in_param.value])})')
+                self.modified = self.modified.replace(
+                    in_param.name,
+                    f"({','.join([str(value) for value in in_param.value])})",
+                )
 
         for index, param in enumerate(self.params, start=1):
-            self.modified = self.modified.replace(param.name, f'${index}')
+            self.modified = self.modified.replace(param.name, f"${index}")
 
     async def send(self, db: Database):
         if self.operation is InsertMany:
@@ -196,7 +204,9 @@ class Query:
                 result = [row[0] for row in rows]
             else:
                 result = [self.return_type.model(**dict(row)) for row in rows]
-        elif not self.return_type.is_list and (self.operation is Select or Returning in self.options):
+        elif not self.return_type.is_list and (
+            self.operation is Select or Returning in self.options
+        ):
             rows = await db.fetch_one(self.modified, *[p.value for p in self.params])
             if rows is None:
                 result = None
@@ -205,7 +215,9 @@ class Query:
             else:
                 result = self.return_type.model(**dict(rows))
         elif self.operation not in [Select, Update, Delete] and In in self.options:
-            result = await db.execute_many(self.modified, *[p.value for p in self.params])
+            result = await db.execute_many(
+                self.modified, *[p.value for p in self.params]
+            )
             result = None
         else:
             result = await db.execute(self.modified, *[p.value for p in self.params])

@@ -1,9 +1,10 @@
 import sys
 
-if 'sqlite3' not in sys.modules:
+if "sqlite3" not in sys.modules:
     try:
         import pysqlite3
-        sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+        sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
     except ImportError:
         print("pysqlite3 is not installed, and sqlite3 is not available.")
 
@@ -15,24 +16,22 @@ from abc import ABC, abstractmethod
 
 class Database(ABC):
     @abstractmethod
-    async def fetch_one(self, query: str, *args):
-        ...
+    async def fetch_one(self, query: str, *args): ...
 
     @abstractmethod
-    async def fetch_many(self, query: str, *args):
-        ...
+    async def fetch_many(self, query: str, *args): ...
 
     @abstractmethod
-    async def execute(self, query: str, *args):
-        ...
+    async def execute(self, query: str, *args): ...
 
     @abstractmethod
-    async def execute_many(self, query: str, args):
-        ...
+    async def execute_many(self, query: str, args): ...
 
 
 class PostgresDatabase(Database):
-    def __init__(self, db_name: str, db_user: str, db_password: str, db_host: str, db_port: str):
+    def __init__(
+        self, db_name: str, db_user: str, db_password: str, db_host: str, db_port: str
+    ):
         self.dsn = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
     async def get_connection(self):
