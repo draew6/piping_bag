@@ -46,7 +46,9 @@ class ReturnType:
         self.is_list = model is list or get_origin(model) is list
         if self.is_list:
             model = model.__args__[0]
-        if (get_origin(model) is Union or get_origin(model) is UnionType) and isinstance(None, model.__args__[1]):
+        if (
+            get_origin(model) is Union or get_origin(model) is UnionType
+        ) and isinstance(None, model.__args__[1]):
             model = model.__args__[0]
             self.is_optional = True
         else:

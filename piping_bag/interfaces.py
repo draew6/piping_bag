@@ -1,4 +1,5 @@
 import sys
+import re
 
 if "sqlite3" not in sys.modules:
     try:
@@ -66,6 +67,10 @@ class SQLiteDatabase(Database):
     def __init__(self, path: str):
         self.dsn = path
 
+    @staticmethod
+    def to_sqlite_question_marks(sql: str) -> str:
+        return re.sub(r"\$\d+", "?", sql)
+
     def get_connection(self):
         return aiosqlite.connect(self.dsn)
 
@@ -73,7 +78,7 @@ class SQLiteDatabase(Database):
         async with self.get_connection() as connection:
             connection.row_factory = aiosqlite.Row
             async with connection.cursor() as cursor:
-                await cursor.execute(query, args)
+                await cursor.execute(self.to_sqlite_question_marks(query), args)
                 result = await cursor.fetchone()
                 if not query.lower().startswith("select"):
                     await connection.commit()
@@ -83,7 +88,9 @@ class SQLiteDatabase(Database):
         async with self.get_connection() as connection:
             connection.row_factory = aiosqlite.Row
             async with connection.cursor() as cursor:
-                await cursor.execute(query, parameters=args)
+                await cursor.execute(
+                    self.to_sqlite_question_marks(query), parameters=args
+                )
                 result = await cursor.fetchall()
                 if not query.lower().startswith("select"):
                     await connection.commit()
@@ -93,7 +100,9 @@ class SQLiteDatabase(Database):
         async with self.get_connection() as connection:
             connection.row_factory = aiosqlite.Row
             async with connection.cursor() as cursor:
-                await cursor.execute(query, parameters=args)
+                await cursor.execute(
+                    self.to_sqlite_question_marks(query), parameters=args
+                )
                 if not query.lower().startswith("select"):
                     await connection.commit()
 
@@ -101,5 +110,7 @@ class SQLiteDatabase(Database):
         async with self.get_connection() as connection:
             connection.row_factory = aiosqlite.Row
             async with connection.cursor() as cursor:
-                await cursor.executemany(query, parameters=args)
+                await cursor.executemany(
+                    self.to_sqlite_question_marks(query), parameters=args
+                )
                 await connection.commit()
