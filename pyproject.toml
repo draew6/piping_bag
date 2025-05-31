@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "piping_bag"
-version = "0.2.1"
+version = "0.2.4"
 dependencies = [
     "pydantic==2.11.3",
     "asyncpg==0.30.0",
