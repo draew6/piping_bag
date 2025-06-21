@@ -69,7 +69,7 @@ class SQLiteDatabase(Database):
 
     @staticmethod
     def to_sqlite_question_marks(sql: str) -> str:
-        return re.sub(r"\$\d+", "?", sql)
+        return re.sub(r"\$(\d+)", r"?\1", sql)
 
     def get_connection(self):
         return aiosqlite.connect(self.dsn)
