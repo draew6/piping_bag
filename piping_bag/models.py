@@ -22,6 +22,7 @@ class InsertMany(Insert): ...
 
 class Update(Operation): ...
 
+class UpdateMany(Update): ...
 
 class Delete(Operation): ...
 
@@ -137,6 +138,8 @@ class Query:
             self.operation = InsertMany
         elif raw_lower.startswith("insert"):
             self.operation = Insert
+        elif raw_lower.startswith("update") and self.data:
+            self.operation = UpdateMany
         elif raw_lower.startswith("update"):
             self.operation = Update
         elif raw_lower.startswith("delete"):
@@ -197,7 +200,7 @@ class Query:
             self.modified = self.modified.replace(param.name, f"${index}")
 
     async def send(self, db: Database):
-        if self.operation is InsertMany:
+        if self.operation in [InsertMany, UpdateMany]:
             result = await db.execute_many(self.modified, self.data)
         elif self.return_type.is_list and self.operation is Select:
             rows = await db.fetch_many(self.modified, *[p.value for p in self.params])
