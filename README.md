@@ -93,3 +93,17 @@ Single env var in `.env`:
 ```
 DATABASE_URL="postgresql://user:pass@localhost:5432/mydb"
 ```
+
+## Testing
+
+  Uses py-pglite (embedded Postgres via WASM) for tests:
+```python
+  from py_pglite import PGliteConfig, PGliteManager
+  import asyncpg
+
+  config = PGliteConfig(use_tcp=True, tcp_port=15432)
+  with PGliteManager(config) as manager:
+      pool = await asyncpg.create_pool(url, min_size=1, max_size=1, server_settings={}, ssl=False)
+```
+
+  Pool must use min_size=1, max_size=1 due to pglite's single-connection constraint.
