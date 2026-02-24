@@ -1,0 +1,2 @@
+-- Define your database schema here.
+-- This file is the source of truth for pgschema migrations.
