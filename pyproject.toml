@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "piping-bag"
-version = "0.6.0"
+version = "0.6.1"
 description = "Unified CLI for pgschema migrations and SQLC code generation"
 requires-python = ">=3.13"
 dependencies = [

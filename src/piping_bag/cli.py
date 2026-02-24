@@ -119,6 +119,13 @@ def studio() -> None:
 
 
 @app.command()
+def sql() -> None:
+    """Launch Harlequin SQL IDE connected to the database."""
+    config, _ = _load_config()
+    run(["harlequin", config.database_url])
+
+
+@app.command()
 def diff() -> None:
     """Show what pgschema would change (human-readable)."""
     _, pg_env = _load_config()

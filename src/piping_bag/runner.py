@@ -12,6 +12,7 @@ def check_binary(name: str) -> None:
             "pgschema": "Install pgschema: pip install pgschema",
             "sqlc": "Install sqlc: https://docs.sqlc.dev/en/latest/overview/install.html",
             "prisma": "Install prisma: pip install prisma",
+            "harlequin": "Install harlequin: pip install harlequin[postgres]",
         }
         hint = hints.get(name, f"Install {name} and make sure it's on your PATH.")
         typer.echo(f"Error: '{name}' not found on PATH.\n{hint}", err=True)
