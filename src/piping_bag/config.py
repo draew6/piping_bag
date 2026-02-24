@@ -1,7 +1,7 @@
 from pathlib import Path
 from urllib.parse import urlparse
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 SCHEMA_PATH = Path("db/schema.sql")
@@ -11,7 +11,7 @@ QUERIES_DIR = Path("db/queries")
 class PipingBagConfig(BaseSettings):
     database_url: str
 
-    model_config = {"env_file": ".env"}
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 def parse_database_url(url: str) -> dict[str, str]:
