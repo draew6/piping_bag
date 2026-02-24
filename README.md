@@ -33,6 +33,7 @@ pb up            # apply schema + generate Python client
 | `pb dump`     | Dump live DB schema to db/schema.sql             |
 | `pb diff`     | Show planned changes (human-readable)            |
 | `pb studio`   | Launch Prisma Studio                             |
+| `pb sql`      | Launch Harlequin SQL IDE                         |
 
 ## Project Structure
 
