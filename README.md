@@ -97,14 +97,21 @@ DATABASE_URL="postgresql://user:pass@localhost:5432/mydb"
 
 ## Testing
 
-  Uses py-pglite (embedded Postgres via WASM) for tests:
-```python
-  from py_pglite import PGliteConfig, PGliteManager
-  import asyncpg
+Uses [testcontainers](https://github.com/testcontainers/testcontainers-python) to spin up a real PostgreSQL container in Docker:
 
-  config = PGliteConfig(use_tcp=True, tcp_port=15432)
-  with PGliteManager(config) as manager:
-      pool = await asyncpg.create_pool(url, min_size=1, max_size=1, server_settings={}, ssl=False)
+```python
+from testcontainers.postgres import PostgresContainer
+import asyncpg
+
+with PostgresContainer("postgres:17") as pg:
+    host = pg.get_container_host_ip()
+    port = pg.get_exposed_port(5432)
+    url = f"postgresql://test:test@{host}:{port}/test"
+    pool = await asyncpg.create_pool(url)
 ```
 
-  Pool must use min_size=1, max_size=1 due to pglite's single-connection constraint.
+Requires Docker to be running. Run tests with:
+
+```bash
+pytest tests/ -v
+```
