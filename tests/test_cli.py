@@ -20,9 +20,12 @@ class {name}:
 
 _NON_QUERY_CLASS = '''\
 class QueryResults:
-    def __init__(self, sql, decode_hook):
-        self.sql = sql
-        self.decode_hook = decode_hook
+    __slots__ = ("_args", "_conn", "_cursor", "_decode_hook", "_iterator", "_sql")
+
+    def __init__(self, conn, sql, decode_hook):
+        self._conn = conn
+        self._sql = sql
+        self._decode_hook = decode_hook
 '''
 
 runner = CliRunner()

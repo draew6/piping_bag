@@ -88,7 +88,7 @@ def sync() -> None:
 
 
 def _is_query_class(node: ast.ClassDef) -> bool:
-    """Check if an AST class node is a sqlc query class (has __slots__ = ("_conn",))."""
+    """Check if an AST class node is a sqlc query class (has __slots__ = ("_conn",) exactly)."""
     for item in node.body:
         if (
             isinstance(item, ast.Assign)
@@ -97,10 +97,9 @@ def _is_query_class(node: ast.ClassDef) -> bool:
                 for t in item.targets
             )
             and isinstance(item.value, ast.Tuple)
-            and any(
-                isinstance(elt, ast.Constant) and elt.value == "_conn"
-                for elt in item.value.elts
-            )
+            and len(item.value.elts) == 1
+            and isinstance(item.value.elts[0], ast.Constant)
+            and item.value.elts[0].value == "_conn"
         ):
             return True
     return False
