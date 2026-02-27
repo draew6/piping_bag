@@ -9,6 +9,22 @@ from piping_bag.cli import (
     app,
 )
 
+# Minimal sqlc-generated query class shape
+_QUERY_CLASS_TEMPLATE = '''\
+class {name}:
+    __slots__ = ("_conn",)
+
+    def __init__(self, conn):
+        self._conn = conn
+'''
+
+_NON_QUERY_CLASS = '''\
+class QueryResults:
+    def __init__(self, sql, decode_hook):
+        self.sql = sql
+        self.decode_hook = decode_hook
+'''
+
 runner = CliRunner()
 
 
@@ -82,15 +98,15 @@ class TestWriteDbInit:
 
     def test_discover_single_class(self, tmp_path):
         generated = self._setup_generated(tmp_path, {
-            "metadata.py": "class Metadata:\n    pass\n",
+            "metadata.py": _QUERY_CLASS_TEMPLATE.format(name="Metadata"),
         })
         classes = _discover_generated_classes(generated)
         assert classes == [("metadata", "Metadata")]
 
     def test_discover_multiple_files(self, tmp_path):
         generated = self._setup_generated(tmp_path, {
-            "detail.py": "class Detail:\n    pass\n",
-            "metadata.py": "class Metadata:\n    pass\n",
+            "detail.py": _QUERY_CLASS_TEMPLATE.format(name="Detail"),
+            "metadata.py": _QUERY_CLASS_TEMPLATE.format(name="Metadata"),
         })
         classes = _discover_generated_classes(generated)
         assert classes == [("detail", "Detail"), ("metadata", "Metadata")]
@@ -99,7 +115,14 @@ class TestWriteDbInit:
         generated = self._setup_generated(tmp_path, {
             "__init__.py": "",
             "models.py": "class User:\n    pass\n",
-            "queries.py": "class Queries:\n    pass\n",
+            "queries.py": _QUERY_CLASS_TEMPLATE.format(name="Queries"),
+        })
+        classes = _discover_generated_classes(generated)
+        assert classes == [("queries", "Queries")]
+
+    def test_discover_skips_non_query_classes(self, tmp_path):
+        generated = self._setup_generated(tmp_path, {
+            "queries.py": _NON_QUERY_CLASS + _QUERY_CLASS_TEMPLATE.format(name="Queries"),
         })
         classes = _discover_generated_classes(generated)
         assert classes == [("queries", "Queries")]
@@ -122,8 +145,8 @@ class TestWriteDbInit:
     def test_write_db_init_creates_file(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         self._setup_generated(tmp_path, {
-            "metadata.py": "class Metadata:\n    pass\n",
-            "posting.py": "class Posting:\n    pass\n",
+            "metadata.py": _QUERY_CLASS_TEMPLATE.format(name="Metadata"),
+            "posting.py": _QUERY_CLASS_TEMPLATE.format(name="Posting"),
         })
         _write_db_init()
         db_init = tmp_path / "db" / "__init__.py"

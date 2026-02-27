@@ -87,21 +87,44 @@ def sync() -> None:
     run(["pgschema", "apply", "--file", str(SCHEMA_PATH)], env=pg_env)
 
 
-def _extract_class_names(source: str) -> list[str]:
-    """Extract top-level class names from Python source using the ast module."""
+def _is_query_class(node: ast.ClassDef) -> bool:
+    """Check if an AST class node is a sqlc query class (has __slots__ = ("_conn",))."""
+    for item in node.body:
+        if (
+            isinstance(item, ast.Assign)
+            and any(
+                isinstance(t, ast.Name) and t.id == "__slots__"
+                for t in item.targets
+            )
+            and isinstance(item.value, ast.Tuple)
+            and any(
+                isinstance(elt, ast.Constant) and elt.value == "_conn"
+                for elt in item.value.elts
+            )
+        ):
+            return True
+    return False
+
+
+def _extract_query_class_names(source: str) -> list[str]:
+    """Extract top-level query class names (classes with __slots__ = ("_conn",))."""
     tree = ast.parse(source)
-    return [node.name for node in ast.iter_child_nodes(tree) if isinstance(node, ast.ClassDef)]
+    return [
+        node.name
+        for node in ast.iter_child_nodes(tree)
+        if isinstance(node, ast.ClassDef) and _is_query_class(node)
+    ]
 
 
 def _discover_generated_classes(generated_dir: Path) -> list[tuple[str, str]]:
-    """Scan generated_dir for modules with classes. Returns (module_name, class_name) pairs."""
+    """Scan generated_dir for modules with query classes. Returns (module_name, class_name) pairs."""
     skip = {"__init__.py", "models.py"}
     results: list[tuple[str, str]] = []
     for py_file in sorted(generated_dir.glob("*.py")):
         if py_file.name in skip:
             continue
         source = py_file.read_text(encoding="utf-8")
-        for class_name in _extract_class_names(source):
+        for class_name in _extract_query_class_names(source):
             results.append((py_file.stem, class_name))
     return results
 
